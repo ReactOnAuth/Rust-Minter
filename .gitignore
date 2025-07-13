@@ -3,10 +3,7 @@
 **/*.rs.bk
 Cargo.lock
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+
 
 # IDE
 .vscode/
@@ -20,4 +17,8 @@ Cargo.lock
 Thumbs.db
 
 # Logs
-*.log 
+*.log
+
+# Generated address files
+*_addresses_*.txt
+*_addresses_*.csv
