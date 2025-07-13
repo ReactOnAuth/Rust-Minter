@@ -19,9 +19,6 @@ Thumbs.db
 # Logs
 *.log
 
-# Environment variables
-.env
-
 # Generated address files
 *_addresses_*.txt
 *_addresses_*.csv
