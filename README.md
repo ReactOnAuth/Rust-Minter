@@ -1,365 +1,269 @@
 # Solana Mint Address Generator
 
-A high-performance Rust application that generates Solana mint addresses with specific suffixes ("pump" for pump.fun tokens and "bonk" for lets.bonk tokens) and automatically stores them in a Supabase database.
+A high-performance Rust application that generates Solana mint addresses ending with specific suffixes for pump.fun and lets.bonk tokens. The generator runs on all CPU cores at maximum utilization and saves addresses to a Supabase database.
 
 ## Features
 
-- 🎯 Generate Solana addresses ending with "pump" or "bonk" (case-sensitive)
-- 💾 Automatic Supabase database integration
-- 📊 Performance tracking and statistics
-- 🔄 Progress logging during generation
-- 🛠️ Command-line interface with multiple options
-- ⚡ **Multi-core processing at 100% CPU utilization**
-- 🚀 Utilizes all available CPU cores for maximum performance
-- 🔥 Optimized for high-throughput address generation
-- 📦 **Batch upload system** - uploads addresses in configurable batches
-- 💾 **Local backup support** - saves addresses to local files
-- 🔄 **Flexible upload strategies** - immediate, batch, or bulk upload
-
-## 🚀 Key Improvements
-
-### Major Optimizations Made:
-
-**1. Batch Upload System**
-- ✅ Configurable batch sizes (1, 10, 25, or bulk)
-- ✅ Dramatically reduced database load
-- ✅ Automatic fallback to individual inserts if batch fails
-- ✅ Memory-efficient batch processing
-
-**2. Local Backup Support**
-- ✅ Timestamped backup files
-- ✅ CSV format for easy importing
-- ✅ Prevents data loss during database issues
-- ✅ Backup management utilities
-
-**3. Flexible Upload Strategies**
-- ✅ Immediate upload (batch-size 1)
-- ✅ Batch upload (batch-size 10) - **Recommended**
-- ✅ Bulk upload (batch-size 0) - **Fastest for large batches**
-- ✅ Local-only mode with manual upload later
-
-**4. Enhanced Performance**
-- ✅ 100% CPU utilization across all cores
-- ✅ Reduced database overhead
-- ✅ Better progress reporting
-- ✅ Comprehensive performance statistics
+- 🚀 **High Performance**: Utilizes all CPU cores at 100% capacity
+- 🎯 **Targeted Generation**: Generates addresses ending with "pump" and "bonk" (case sensitive)
+- 💾 **Database Integration**: Saves addresses to Supabase with batch upload support
+- 💾 **Local Backup**: Saves addresses to local CSV files
+- 🔄 **Batch Processing**: Configurable batch sizes for optimal database performance
+- 🛠️ **Cross-Platform**: Works on Windows, Linux, and macOS
+- 📊 **Real-time Monitoring**: Progress tracking and performance metrics
 
 ## Prerequisites
 
-- Rust 1.70+ installed
-- Supabase account and project set up
-- Windows (for .exe compilation as per user preference)
+- **Rust** (latest stable version)
+- **Git**
+- **Supabase Account** (free tier works)
+- **Windows Server** (for production deployment)
 
-## Setup
+## Quick Start
 
-### 1. Clone and Setup Project
-
+### 1. Clone the Repository
 ```bash
-git clone <repository-url>
-cd solana-mint-generator
+git clone https://github.com/Kvickar/rustminter.git
+cd rustminter
 ```
 
-### 2. Install Dependencies
-
+### 2. Set Up Environment
 ```bash
+# Copy the example environment file
+cp .env.example .env
+
+# Edit .env with your Supabase credentials
+# SUPABASE_URL=your_supabase_project_url
+# SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. Set Up Database
+Run the SQL script in your Supabase SQL editor:
+```sql
+-- Copy contents of setup_database.sql
+```
+
+### 4. Build and Run
+```bash
+# Build release version
 cargo build --release
+
+# Test with a single address
+cargo run --release -- pump --count 1
+
+# Generate 1000 pump addresses
+cargo run --release -- pump --count 1000 --batch-size 0 --save-local
 ```
-
-**Note**: Always use `--release` for production use as it provides significantly better performance.
-
-### 3. Configure Supabase
-
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Go to Settings > API to find your project URL and anon key
-3. Copy `.env.example` to `.env`:
-   ```bash
-   copy .env.example .env
-   ```
-4. Update `.env` with your Supabase credentials:
-   ```
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your-anon-key
-   ```
-
-### 4. Set up Database
-
-1. Go to your Supabase project dashboard
-2. Open the SQL Editor
-3. Run the contents of `setup_database.sql` to create the required table
 
 ## Usage
-
-### Basic Commands
-
-Generate 1 address ending with "pump":
-```bash
-cargo run --release -- pump
-```
-
-Generate 5 addresses ending with "bonk" with batch uploads:
-```bash
-cargo run --release -- bonk --count 5 --batch-size 10
-```
-
-Generate 3 addresses of each type with local backup:
-```bash
-cargo run --release -- both --count 3 --save-local
-```
-
-Generate 100 addresses with bulk upload (all at end):
-```bash
-cargo run --release -- pump --count 100 --batch-size 0
-```
 
 ### Command Line Options
 
 ```bash
-solana-mint-generator <COMMAND>
+cargo run --release -- [COMMAND] [OPTIONS]
 
 Commands:
-  pump  Generate addresses ending with 'pump' for pump.fun tokens
-  bonk  Generate addresses ending with 'bonk' for lets.bonk tokens
-  both  Generate both pump and bonk addresses
+  pump    Generate pump.fun addresses (ending with "pump")
+  bonk    Generate lets.bonk addresses (ending with "bonk")
+  both    Generate both types of addresses
 
 Options:
   -c, --count <COUNT>        Number of addresses to generate [default: 1]
-  -b, --batch-size <SIZE>    Batch size for uploads (0 = all at end) [default: 10]
-      --save-local           Save addresses to local backup file
+  -b, --batch-size <SIZE>    Batch size for database upload (0 = bulk upload) [default: 25]
+  -s, --save-local           Save addresses to local CSV files
   -h, --help                 Print help
 ```
 
-### Upload Strategies
-
-**Immediate Upload** (`--batch-size 1`):
-- Uploads each address immediately after generation
-- Highest database load but lowest memory usage
-- Good for small batches or unreliable connections
-
-**Batch Upload** (`--batch-size 10`):
-- Uploads addresses in groups of 10 (configurable)
-- Balanced approach - good performance with reasonable database load
-- **Recommended for most use cases**
-
-**Bulk Upload** (`--batch-size 0`):
-- Generates all addresses first, then uploads everything at once
-- Fastest generation, lowest database load
-- Best for large batches (100+ addresses)
-
-**Local Backup** (`--save-local`):
-- Saves addresses to timestamped local files
-- Acts as backup in case of database issues
-- Format: `pump_addresses_20240101_120000.txt`
-- CSV format: `public_key,base58_private_key,suffix_type`
-- Private keys are Solana-compatible base58 format
-
-### Building for Windows
-
-To create a Windows executable:
+### Examples
 
 ```bash
-cargo build --release --target x86_64-pc-windows-gnu
+# Generate 1000 pump addresses with bulk upload
+cargo run --release -- pump --count 1000 --batch-size 0 --save-local
+
+# Generate 500 bonk addresses with batch upload
+cargo run --release -- bonk --count 500 --batch-size 25 --save-local
+
+# Generate both types (250 each)
+cargo run --release -- both --count 250 --batch-size 0 --save-local
 ```
 
-The executable will be created at `target/x86_64-pc-windows-gnu/release/solana-mint-generator.exe`
-
-### Running the Application
-
-Now that the project has been updated, you can run commands normally again:
+### Windows Batch Scripts
 
 ```bash
-cargo run --release -- [commands]
-```
+# Interactive menu
+run.bat
 
-Or use the built executable directly:
-```bash
-.\target\release\solana-mint-generator.exe [commands]
-```
-
-### Performance Benchmarking
-
-Run the performance benchmark to test your system's capabilities:
-
-```bash
+# Performance benchmark
 benchmark.bat
-```
 
-This will generate one address using all CPU cores and display performance statistics.
+# Continuous generation (PUMP only)
+auto_start.bat
 
-For manual performance testing:
-```bash
-cargo run --release -- pump --count 1
-```
+# Continuous generation (both types)
+auto_both.bat
 
-### Backup Management
-
-Manage your local backup files with the backup manager:
-
-```bash
+# Manage backup files
 manage_backups.bat
 ```
 
-Features:
-- List all backup files
-- View backup contents
-- Clean old backups
-- Convert formats (CSV to JSON)
-- Import guidance
+## Database Setup
 
-### Maximum Performance Tips
+### 1. Create Supabase Project
+1. Go to [supabase.com](https://supabase.com)
+2. Create a new project
+3. Note your project URL and anon key
 
-For optimal performance:
-- Always use `--release` flag for production builds
-- Use the proper command: `cargo run --release -- [commands]`
-- Close unnecessary applications to free up CPU resources
-- Ensure adequate CPU cooling for sustained 100% utilization
-- Consider using a high-performance CPU with many cores
-- Run from SSD storage for faster binary loading
-- Use appropriate batch sizes for your use case
-- Enable local backups for peace of mind
-
-## Database Schema
-
-The application creates a `mint_addresses` table with the following structure:
+### 2. Run Database Script
+Execute this SQL in your Supabase SQL editor:
 
 ```sql
-CREATE TABLE mint_addresses (
-    id SERIAL PRIMARY KEY,
-    pub_key TEXT NOT NULL UNIQUE,
+-- Create mint_addresses table
+CREATE TABLE IF NOT EXISTS mint_addresses (
+    id BIGSERIAL PRIMARY KEY,
+    mint_address VARCHAR(44) UNIQUE NOT NULL,
     private_key TEXT NOT NULL,
-    suffix_type TEXT NOT NULL CHECK (suffix_type IN ('pump', 'bonk')),
+    address_type VARCHAR(10) NOT NULL CHECK (address_type IN ('pump', 'bonk')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Enable Row Level Security
+ALTER TABLE mint_addresses ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow anonymous inserts
+CREATE POLICY "Allow anonymous inserts" ON mint_addresses
+    FOR INSERT WITH CHECK (true);
+
+-- Create index for faster queries
+CREATE INDEX IF NOT EXISTS idx_mint_addresses_type ON mint_addresses(address_type);
+CREATE INDEX IF NOT EXISTS idx_mint_addresses_created ON mint_addresses(created_at);
 ```
 
-## Performance Notes
-
-### Generation Performance
-- **Multi-core Processing**: Automatically detects and uses all CPU cores for maximum performance
-- **100% CPU Utilization**: Runs at full CPU capacity for fastest address generation
-- **Parallel Workers**: Each CPU core runs a dedicated worker thread
-- Address generation is probabilistic - finding addresses with specific suffixes can take time
-- Expected time varies based on suffix length, system performance, and number of CPU cores
-- The application includes progress logging every 5 seconds
-- Performance statistics include attempts per second and total throughput
-- **Significant Performance Boost**: Multi-core processing can be 4-16x faster than single-core
-
-### Database Performance
-- **Batch Uploads**: Dramatically reduce database load compared to individual inserts
-- **Configurable Batch Size**: Balance between memory usage and database efficiency
-- **Bulk Upload Mode**: Fastest for large batches (100+ addresses)
-- **Fallback Handling**: Automatic retry with individual inserts if batch fails
-- **Local Backup**: Prevents data loss if database is unavailable
-
-### Performance Recommendations
-- **Small batches (1-20 addresses)**: Use batch size 5-10
-- **Medium batches (20-100 addresses)**: Use batch size 10-25
-- **Large batches (100+ addresses)**: Use batch size 0 (bulk upload)
-- **Unreliable connections**: Use batch size 1 with `--save-local`
-- **Maximum speed**: Use batch size 0 with good database connection
-
-## Security Considerations
-
-- Private keys are **base58-encoded** for Solana compatibility and stored in the database
-- Private key format: 88-character base58 string (e.g., `4nTk8tn1djjjjKNWjNs4ANR6ynWX4ooq6nBRy9WGAsraRzofUMw4DUkpaGtJGhLBYyNuYpTZQ7FdGoAtz6u3e4vA`)
-- Compatible with Solana CLI, web3.js, and other Solana tools
-- Ensure your Supabase project has appropriate RLS policies
-- Keep your `.env` file secure and never commit it to version control
-- Consider additional encryption for private keys in production use
-
-## Error Handling
-
-The application includes comprehensive error handling for:
-- Supabase connection issues
-- Invalid environment variables
-- Database insertion failures
-- Network connectivity problems
-
-## Example Output
-
-### Batch Upload Mode
-```
-🔍 Generating 5 addresses ending with 'pump' using 8 CPU cores...
-🚀 Running at 100% CPU utilization...
-💾 Upload strategy: Batch upload every 3 addresses
-📁 Saving local backup to: pump_addresses_20240101_120000.txt
-🔄 Total attempts: 156847 (searching for 'pump' on 8 cores)
-🎉 Found matching address after 23156 local attempts on thread 3!
-✨ Found address 1/5: 7XvKquFQXpump
-🔄 Total attempts: 284593 (searching for 'pump' on 8 cores)
-🎉 Found matching address after 18934 local attempts on thread 5!
-✨ Found address 2/5: 9YzMqwRSVpump
-🔄 Total attempts: 402847 (searching for 'pump' on 8 cores)
-🎉 Found matching address after 31245 local attempts on thread 1!
-✨ Found address 3/5: 3PqMnRvTSpump
-✅ Successfully saved 3 addresses to Supabase in batch
-... (continues for remaining addresses)
-✅ Successfully saved 2 addresses to Supabase in batch
-
-📊 Generation complete!
-⏱️  Total time: 28.3s
-🎯 Total attempts: 1,245,890
-📈 Average attempts per address: 249,178.00
-⚡ Performance: 44,025.12 attempts/second
-📁 Local backup saved successfully
+### 3. Configure Environment
+Update your `.env` file:
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
 ```
 
-### Bulk Upload Mode
-```
-🔍 Generating 10 addresses ending with 'bonk' using 24 CPU cores...
-🚀 Running at 100% CPU utilization...
-💾 Upload strategy: Save all addresses at the end
-... (generation continues)
-✅ Successfully saved 10 addresses to Supabase in batch
+## Performance
 
-📊 Generation complete!
-⏱️  Total time: 45.2s
-🎯 Total attempts: 2,847,293
-📈 Average attempts per address: 284,729.30
-⚡ Performance: 62,983.45 attempts/second
+### Expected Performance (addresses/second):
+- **2-core CPU**: ~200K attempts/second
+- **4-core CPU**: ~400K attempts/second
+- **8-core CPU**: ~800K attempts/second
+- **16-core CPU**: ~1.6M attempts/second
+- **32-core CPU**: ~3.2M attempts/second
+
+### Optimization Tips:
+1. **Use `--batch-size 0`** for maximum throughput on large generations
+2. **Enable `--save-local`** for backup and offline access
+3. **Run on dedicated hardware** for sustained performance
+4. **Use SSD storage** for faster binary loading
+5. **Close unnecessary applications** to free up CPU resources
+
+## File Structure
+
 ```
+rustminter/
+├── src/
+│   └── main.rs              # Main application logic
+├── Cargo.toml               # Rust dependencies
+├── .env.example             # Environment template
+├── setup_database.sql       # Database setup script
+├── run.bat                  # Interactive Windows menu
+├── auto_start.bat           # Continuous PUMP generation
+├── auto_both.bat            # Continuous both types
+├── benchmark.bat            # Performance testing
+├── manage_backups.bat       # Backup management
+└── README.md               # This file
+```
+
+## Output Files
+
+### Database
+Addresses are stored in the `mint_addresses` table with:
+- `mint_address`: The generated Solana address
+- `private_key`: Base58-encoded private key
+- `address_type`: "pump" or "bonk"
+- `created_at`: Timestamp
+
+### Local Files
+When using `--save-local`, addresses are saved to:
+- `pump_addresses_YYYYMMDD_HHMMSS.txt`: PUMP addresses
+- `bonk_addresses_YYYYMMDD_HHMMSS.txt`: BONK addresses
+
+Format: `mint_address,private_key`
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues:
 
-1. **Supabase RLS Policy Error** (most common)
+1. **Supabase Connection Error**
+   - Verify your `.env` file has correct credentials
+   - Check internet connection
+   - Ensure RLS policies are set up correctly
+
+2. **Compilation Errors**
+   ```bash
+   rustup update
+   cargo clean
+   cargo build --release
    ```
-   ❌ Failed to save address: {"code":"42501","message":"new row violates row-level security policy"}
-   ```
-   
-   **Solution A** (Recommended): Update your database policies by running this SQL in Supabase:
-   ```sql
-   -- Allow anonymous users to insert new addresses
-   CREATE POLICY "Allow anonymous insert for mint addresses" ON mint_addresses
-       FOR INSERT WITH CHECK (true);
-   ```
-   
-   **Quick Fix**: Run the contents of `fix_rls_policy.sql` in your Supabase SQL Editor
-   
-   **Solution B** (Alternative): Use service role key instead of anon key:
-   1. Go to Supabase → Settings → API
-   2. Copy the **service_role** key (not anon key)
-   3. Replace `SUPABASE_ANON_KEY` in your `.env` file with the service role key
-   
-   > **Note**: Service role bypasses RLS and has full database access. Use with caution.
 
-2. **Supabase Connection Error**
-   - Check your `.env` file configuration
-   - Verify your Supabase URL and API key
-   - Ensure your Supabase project is active
+3. **Low Performance**
+   - Check CPU usage in Task Manager
+   - Close unnecessary applications
+   - Use `--batch-size 0` for large generations
 
-3. **Database Table Not Found**
-   - Run the SQL script in `setup_database.sql`
-   - Check table permissions in Supabase
+4. **Database Insert Errors**
+   - Run the RLS policy fix: `fix_rls_policy.sql`
+   - Check Supabase dashboard for errors
+   - Verify table structure matches setup script
 
-4. **Build Errors**
-   - Ensure Rust 1.70+ is installed
-   - Run `cargo clean` and `cargo build` again
+### Performance Debugging:
+```bash
+# Check CPU cores
+wmic cpu get NumberOfCores,NumberOfLogicalProcessors
+
+# Monitor process
+tasklist /FI "IMAGENAME eq solana-mint-generator.exe"
+```
+
+## Security Considerations
+
+### For Production Use:
+1. **Use environment variables** for sensitive data
+2. **Monitor database usage** in Supabase dashboard
+3. **Set up database backups**
+4. **Consider rate limiting** for public deployments
+5. **Use VPN** for remote server access
+
+### Private Key Security:
+- Private keys are stored in base58 format
+- Keys are saved locally when using `--save-local`
+- Database access should be restricted in production
 
 ## Contributing
 
-Feel free to submit issues and enhancement requests!
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For issues and questions:
+1. Check the troubleshooting section
+2. Review error messages carefully
+3. Test with small batches first
+4. Check Supabase dashboard for database issues
+5. Open an issue on GitHub
+
+---
+
+**Happy address generating!** 🚀 
